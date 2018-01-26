@@ -1,5 +1,6 @@
 package com.example.diceout;
 
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -9,19 +10,18 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
     //field to hold the roll result text
     TextView rollResult;
-
-    //field to hold the roll button
-
-    Button rollButton;
 
     //field to hold the scores
     int score;
@@ -33,7 +33,14 @@ public class MainActivity extends AppCompatActivity {
     int die2;
     int die3;
 
+    //field to hold the score text
+    TextView scoreText;
+
+    //arraylist to hold the dice values
     ArrayList<Integer> dice;
+
+    //arraylist to hold the images
+    ArrayList<ImageView> diceImageViews;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,8 +53,7 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                rollDice(view);
             }
         });
 
@@ -55,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         score = 0;
 
         rollResult = findViewById(R.id.rollResult);
-        rollButton = findViewById(R.id.rollButton);
+        scoreText = findViewById(R.id.scoreText);
 
         //random number for the dice
         rand = new Random();
@@ -64,6 +70,15 @@ public class MainActivity extends AppCompatActivity {
 
         //create an arraylist to hold the dice values
         dice = new ArrayList<Integer>();
+
+        ImageView die1Image = findViewById(R.id.die1Image);
+        ImageView die2Image = findViewById(R.id.die2Image);
+        ImageView die3Image = findViewById(R.id.die3Image);
+
+        diceImageViews = new ArrayList<ImageView>();
+        diceImageViews.add(die1Image);
+        diceImageViews.add(die2Image);
+        diceImageViews.add(die3Image);
     }
 
     public void rollDice(View v)
@@ -81,10 +96,36 @@ public class MainActivity extends AppCompatActivity {
         dice.add(die2);
         dice.add(die3);
 
+        for(int diceOfSet = 0; diceOfSet < 3; diceOfSet++){
+            String imageName = "die_"+dice.get(diceOfSet)+".png";
+
+            try {
+                InputStream stream = getAssets().open(imageName);
+                Drawable d = Drawable.createFromStream(stream,null);
+                diceImageViews.get(diceOfSet).setImageDrawable(d);
+
+            }catch (IOException e){
+                e.printStackTrace();
+            }
+        }
+
         //build the message with the result
-        String msg = "You rolled a " + die1 + ", a " + die2 + ", and a " + die3 + ".";
+        String msg ;
+
+        if(die1 == die2 && die1 == die3){
+            //triple
+            int scoreDelta = die1*100;
+            msg = "You rolled a triple "+ die1 + " ! You score " + scoreDelta+" points!";
+            score += scoreDelta;
+        }else if(die1 == die2 || die1 == die3 || die2 == die3){
+            msg = "You rolled double for 50 points";
+            score += 50;
+        }else{
+            msg = "You didn't score this roll. Try again!";
+        }
 
         rollResult.setText(msg);
+        scoreText.setText("Score : " + score);
 
     }
 
